@@ -1,6 +1,7 @@
 
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Bank {
 
@@ -17,28 +18,30 @@ public class Bank {
     return random.nextBoolean();
   }
 
-  /**
-   * TODO: реализовать метод. Метод переводит деньги между счетами. Если сумма транзакции > 50000,
-   * то после совершения транзакции, она отправляется на проверку Службе Безопасности – вызывается
-   * метод isFraud. Если возвращается true, то делается блокировка счетов (как – на ваше
-   * усмотрение)
-   */
   public void transfer(int fromAccountNum, int toAccountNum, int amount)
       throws InterruptedException {
     Account fromAccount = accounts.get(fromAccountNum);
     Account toAccount = accounts.get(toAccountNum);
 
-    if (fromAccount.IsBlocked() || toAccount.IsBlocked()) {
+    if (fromAccount.isBlocked() || toAccount.isBlocked()) {
       return;
     }
 
-    if (fromAccount.withdrawMoney(amount)) {
-      toAccount.putMoney(amount);
-    }
+    transaction(amount, fromAccount, toAccount);
 
-    if (amount > 50000 && isFraud(fromAccountNum, toAccountNum, amount)) {
+    if (amount > 50000) {
+      if (isFraud(fromAccountNum, toAccountNum, amount)) {
+        transaction(amount, toAccount, fromAccount);
         fromAccount.blockAccount();
         toAccount.blockAccount();
+      }
+
+    }
+  }
+
+  private void transaction(int amount, Account fromAccount, Account toAccount) {
+    if (fromAccount.withdrawMoney(amount)) {
+      toAccount.putMoney(amount);
     }
   }
 
@@ -50,10 +53,6 @@ public class Bank {
     return account.getBalance();
   }
 
-  public HashMap<Integer, Account> getAccounts() {
-    return accounts;
-  }
-
   public void setAccounts(HashMap<Integer, Account> accounts) {
     this.accounts = accounts;
   }
@@ -61,8 +60,8 @@ public class Bank {
   private static HashMap<Integer, Account> fillAccounts() {
     HashMap<Integer, Account> accountMap = new HashMap<>();
     for (int i = 1; i <= 100; i++) {
-      long initialValue = (long) (20000 + 80000 * Math.random());
-      Account account = new Account(initialValue, i);
+      long initialValue = (long) (80000 + 20000 * Math.random());
+      Account account = new Account(new AtomicLong(initialValue), i);
       accountMap.put(i, account);
     }
     return accountMap;

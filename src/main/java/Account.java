@@ -1,31 +1,32 @@
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Account {
 
-  private Long balance;
+  private AtomicLong balance;
   private int accNumber;
-  private volatile AtomicBoolean isBlocked = new AtomicBoolean(false);
+  private AtomicBoolean isBlocked = new AtomicBoolean(false);
 
-  public Account(Long balance, int accNumber) {
+  public Account(AtomicLong balance, int accNumber) {
     this.balance = balance;
     this.accNumber = accNumber;
   }
 
   public long getBalance() {
-    return balance;
+    return balance.get();
   }
 
-  public int getAccNumber() {
-    return accNumber;
+  public void setIsBlocked(AtomicBoolean isBlocked) {
+    this.isBlocked = isBlocked;
   }
 
-  public boolean IsBlocked() {
+  public boolean isBlocked() {
     return isBlocked.get();
   }
 
   public synchronized boolean withdrawMoney(long money) {
-    if (balance > money) {
-      balance = balance - money;
+    if (balance.get() >= money) {
+      balance.updateAndGet(b -> b - money);
       return true;
     }
     return false;
@@ -33,10 +34,10 @@ public class Account {
 
 
   public synchronized void putMoney(long money) {
-    balance += money;
+    balance.updateAndGet(b -> b + money);
   }
 
   public void blockAccount() {
-    this.isBlocked.compareAndSet(false,true);
+    isBlocked.getAndSet(true);
   }
 }
