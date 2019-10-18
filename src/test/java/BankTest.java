@@ -145,5 +145,26 @@ public class BankTest extends TestCase {
     assertEquals(expectedTo, actualTo);
   }
 
+  public void testDoubleWithdrawal() throws InterruptedException {
+    for (int i = 0; i < 4; i++) {
+      Thread t = new Thread(() -> {
+        try {
+          bank.transfer(1, 2, 50000);
+          bank.transfer(1, 2, 50000);
+          bank.transfer(1, 2, 50000);
+          bank.transfer(1, 2, 50000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      });
+      t.start();
+      t.join();
+
+      long expected = a1.getBalance();
+      long actual = 0;
+      assertEquals(expected,actual);
+    }
+  }
+
 
 }
