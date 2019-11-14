@@ -22,11 +22,11 @@ public class BankTest extends TestCase {
   public void setUp() throws Exception {
 
     bank = new Bank();
-    a1 = new Account(new AtomicLong(50000L), 1);
-    a2 = new Account(new AtomicLong(50000L), 2);
-    a3 = new Account(new AtomicLong(50000L), 3);
-    a4 = new Account(new AtomicLong(60000L), 4);
-    a5 = new Account(new AtomicLong(60000L), 5);
+    a1 = new Account(50000, 1);
+    a2 = new Account(50000, 2);
+    a3 = new Account(50000, 3);
+    a4 = new Account(60000, 4);
+    a5 = new Account(60000, 5);
     accounts.put(1, a1);
     accounts.put(2, a2);
     accounts.put(3, a3);
@@ -106,7 +106,7 @@ public class BankTest extends TestCase {
 
   public void testTransferBlock() throws InterruptedException {
     long balance = a1.getBalance();
-    a1.setIsBlocked(new AtomicBoolean(true));
+    a1.setIsBlocked(true);
     bank.transfer(1, 2, 1000);
     bank.transfer(1, 2, 1000);
     bank.transfer(1, 2, 1000);
@@ -146,12 +146,15 @@ public class BankTest extends TestCase {
   }
 
   public void testDoubleWithdrawal() throws InterruptedException {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 50; i++) {
       Thread t = new Thread(() -> {
         try {
           bank.transfer(1, 2, 50000);
+          Thread.sleep(100);
           bank.transfer(1, 2, 50000);
+          Thread.sleep(100);
           bank.transfer(1, 2, 50000);
+          Thread.sleep(100);
           bank.transfer(1, 2, 50000);
         } catch (InterruptedException e) {
           e.printStackTrace();
